@@ -10,6 +10,10 @@ A bot that answers company policy questions and names the relevant policy, built
 
 The website (`app.py`, Streamlit) shows each approach's answer, relevant policy, response time, token use and whether the answer is supported by the policy database. The Slack bot (`slack_bot.py`) uses the same engine.
 
+- Live site: https://policy-assistant-d512.onrender.com
+- Models (Gemini API, free tier): answers `gemini-3.5-flash-lite`, evaluation judge `gemini-3.1-flash-lite`, embeddings `gemini-embedding-001`.
+  The judge uses a different model so it has its own daily quota and does not grade its own answers.
+
 ## Project structure
 
 ```
@@ -33,16 +37,24 @@ copy .env.example .env            # then paste your Gemini API key into .env
 ```
 
 Get a key at https://aistudio.google.com/apikey. If a model name has been retired, change
-`GEMINI_MODEL` / `GEMINI_EMBEDDING_MODEL` in `.env` (see https://ai.google.dev/gemini-api/docs/models).
+`GEMINI_MODEL` / `GEMINI_JUDGE_MODEL` / `GEMINI_EMBEDDING_MODEL` in `.env` (see https://ai.google.dev/gemini-api/docs/models).
+Free-tier daily limits differ a lot per model (see https://aistudio.google.com/rate-limit). The Flash Lite models allow
+about 500 requests per day, while the full Flash models allow 20, which is too few for the evaluation (about 112 calls).
+Models that reject `thinking_budget` are detected automatically, and the code retries without it.
 
 ## 1. Run the evaluation
 
 ```bash
-python evaluate.py --sleep 4      # --sleep helps with free-tier rate limits
+python evaluate.py --sleep 4           # --sleep helps with free-tier rate limits
+python evaluate.py --sleep 4           # run again to resume after a stop (quota, 503 overload)
+python evaluate.py --fresh --sleep 4   # start over from scratch
+python evaluate.py --summary-only      # rebuild results/summary.json from the saved CSV
 ```
 
 This writes `results/eval_results.csv` (every answer) and `results/summary.json` (the two tables on
-the website), and creates `data/policy_embeddings.npz`. Then fill in the numbers in `COMPARISON.md`.
+the website), and creates `data/policy_embeddings.npz`. Progress is saved after every answer. If the daily quota
+runs out or the API is overloaded, the run stops cleanly, and the next run continues where it left off.
+Response time in Table 1 is the median, because retries during API overload create a few extreme values.
 
 How "unsupported" is measured:
 - **Live on the website:** an automatic check. The cited policy has to exist, and the answer must not contain numbers the policy does not state.
