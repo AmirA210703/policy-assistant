@@ -1,0 +1,55 @@
+{
+  "overall": [
+    {
+      "Approach": "Rules-based search",
+      "Correct policy (%)": 92.9,
+      "Unsupported answers (%)": 0.0,
+      "Out-of-scope refused (%)": 80.0,
+      "Median response time (ms)": 1.0,
+      "Avg. tokens / question": 0
+    },
+    {
+      "Approach": "LLM without vector index",
+      "Correct policy (%)": 96.4,
+      "Unsupported answers (%)": 0.0,
+      "Out-of-scope refused (%)": 100.0,
+      "Median response time (ms)": 4951.8,
+      "Avg. tokens / question": 2167
+    },
+    {
+      "Approach": "LLM with vector index",
+      "Correct policy (%)": 100.0,
+      "Unsupported answers (%)": 0.0,
+      "Out-of-scope refused (%)": 100.0,
+      "Median response time (ms)": 11902.6,
+      "Avg. tokens / question": 380
+    }
+  ],
+  "by_type": [
+    {
+      "Approach": "Rules-based search",
+      "direct": 100.0,
+      "paraphrased": 87.5,
+      "missing detail": 100.0,
+      "out of scope": 80.0,
+      "ambiguous": 100.0
+    },
+    {
+      "Approach": "LLM without vector index",
+      "direct": 100.0,
+      "paraphrased": 100.0,
+      "missing detail": 100.0,
+      "out of scope": 100.0,
+      "ambiguous": 66.7
+    },
+    {
+      "Approach": "LLM with vector index",
+      "direct": 100.0,
+      "paraphrased": 100.0,
+      "missing detail": 100.0,
+      "out of scope": 100.0,
+      "ambiguous": 100.0
+    }
+  ],
+  "note": "By question type: % of questions with the correct policy AND a supported answer."
+}

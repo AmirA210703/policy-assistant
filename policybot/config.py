@@ -20,7 +20,9 @@ def get_setting(name: str, default: str | None = None) -> str | None:
     return default
 
 
-GEMINI_MODEL = get_setting("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = get_setting("GEMINI_MODEL", "gemini-3.5-flash-lite")
+# Model used by evaluate.py to judge answers. A different model has its own daily quota.
+JUDGE_MODEL = get_setting("GEMINI_JUDGE_MODEL", "gemini-3.1-flash-lite")
 EMBEDDING_MODEL = get_setting("GEMINI_EMBEDDING_MODEL", "gemini-embedding-001")
 # 0 turns off Gemini "thinking" so latency/token numbers stay comparable. Use "" to leave it on.
 THINKING_BUDGET = get_setting("GEMINI_THINKING_BUDGET", "0")

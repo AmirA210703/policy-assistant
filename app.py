@@ -113,7 +113,7 @@ with tab_compare:
     summary_file = ROOT / "results" / "summary.json"
     if summary_file.exists():
         summary = json.loads(summary_file.read_text())
-        st.markdown("**Table 1. Results on the 28-question test set**")
+        st.markdown("**Table 1. Results on the 28-question test set (response time = median)**")
         st.dataframe(pd.DataFrame(summary["overall"]), hide_index=True, use_container_width=True)
         st.markdown("**Table 2. Correct policy and supported answer, by question type (%)**")
         st.dataframe(pd.DataFrame(summary["by_type"]), hide_index=True, use_container_width=True)

@@ -21,15 +21,21 @@ def client() -> genai.Client:
     return genai.Client(api_key=key, http_options=types.HttpOptions(timeout=45_000))
 
 
-def _retry(fn, attempts: int = 3):
+class DailyQuotaExceeded(RuntimeError):
+    """The free-tier requests-per-day limit is used up; retrying today will not help."""
+
+
+def _retry(fn, attempts: int = 5):
     for i in range(attempts):
         try:
             return fn()
         except Exception as e:  # rate limits on the free tier -> back off and retry
             msg = str(e)
-            print(f"[gemini] attempt {i + 1} failed: {msg[:400]}", flush=True)
+            print(f"[gemini] attempt {i + 1} failed: {msg[:200]}", flush=True)
+            if "PerDay" in msg:
+                raise DailyQuotaExceeded(msg) from e
             if i < attempts - 1 and ("429" in msg or "RESOURCE_EXHAUSTED" in msg or "503" in msg):
-                time.sleep(2 ** i * 2)
+                time.sleep(3 * 2 ** i)  # 3, 6, 12, 24 s
                 continue
             raise
 
@@ -43,22 +49,28 @@ def _config(system: str, use_thinking_budget: bool) -> types.GenerateContentConf
     return types.GenerateContentConfig(**kwargs)
 
 
-def generate_json(system: str, prompt: str) -> tuple[dict, dict]:
+def generate_json(system: str, prompt: str, model: str | None = None) -> tuple[dict, dict]:
     """Returns (parsed JSON, usage dict)."""
+    model = model or config.GEMINI_MODEL
+
     def call(use_budget: bool):
         return client().models.generate_content(
-            model=config.GEMINI_MODEL, contents=prompt, config=_config(system, use_budget))
+            model=model, contents=prompt, config=_config(system, use_budget))
 
     global _budget_supported
     try:
         resp = _retry(lambda: call(_budget_supported))
+    except DailyQuotaExceeded:
+        raise
     except Exception as e:  # some models don't accept a thinking budget -> stop sending it
-        if not _budget_supported or "thinking" not in str(e).lower():
+        msg = str(e)
+        if not _budget_supported or not ("thinking" in msg.lower() or "INVALID_ARGUMENT" in msg):
             raise
+        print("[gemini] retrying without thinking_budget", flush=True)
         _budget_supported = False
         resp = _retry(lambda: call(False))
 
-    print(f"[gemini] {config.GEMINI_MODEL} ok, thinking_budget={'on' if _budget_supported else 'off'}", flush=True)
+    print(f"[gemini] {model} ok, thinking_budget={'on' if _budget_supported else 'off'}", flush=True)
     u = resp.usage_metadata
     usage = {
         "input_tokens": u.prompt_token_count or 0,
