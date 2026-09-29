@@ -9,29 +9,35 @@ from google.genai import types
 
 from . import config
 
+_budget_supported = True  # set to False once the model rejects a thinking budget
+
 
 @lru_cache(maxsize=1)
 def client() -> genai.Client:
     key = config.get_setting("GEMINI_API_KEY") or config.get_setting("GOOGLE_API_KEY")
     if not key:
         raise RuntimeError("GEMINI_API_KEY is not set (see .env.example)")
-    return genai.Client(api_key=key)
+    # 45 s timeout so a slow call fails visibly instead of hanging the website
+    return genai.Client(api_key=key, http_options=types.HttpOptions(timeout=45_000))
 
 
-def _retry(fn, attempts: int = 5):
+def _retry(fn, attempts: int = 3):
     for i in range(attempts):
         try:
             return fn()
         except Exception as e:  # rate limits on the free tier -> back off and retry
             msg = str(e)
+            print(f"[gemini] attempt {i + 1} failed: {msg[:400]}", flush=True)
             if i < attempts - 1 and ("429" in msg or "RESOURCE_EXHAUSTED" in msg or "503" in msg):
-                time.sleep(2 ** i * 3)
+                time.sleep(2 ** i * 2)
                 continue
             raise
 
 
 def _config(system: str, use_thinking_budget: bool) -> types.GenerateContentConfig:
-    kwargs = dict(system_instruction=system, temperature=0, response_mime_type="application/json")
+    kwargs = dict(system_instruction=system, temperature=0, response_mime_type="application/json",
+                  max_output_tokens=1024,
+                  automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True))
     if use_thinking_budget and config.THINKING_BUDGET not in (None, ""):
         kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=int(config.THINKING_BUDGET))
     return types.GenerateContentConfig(**kwargs)
@@ -43,13 +49,16 @@ def generate_json(system: str, prompt: str) -> tuple[dict, dict]:
         return client().models.generate_content(
             model=config.GEMINI_MODEL, contents=prompt, config=_config(system, use_budget))
 
+    global _budget_supported
     try:
-        resp = _retry(lambda: call(True))
-    except Exception as e:  # some models don't accept a thinking budget of 0
-        if "thinking" not in str(e).lower():
+        resp = _retry(lambda: call(_budget_supported))
+    except Exception as e:  # some models don't accept a thinking budget -> stop sending it
+        if not _budget_supported or "thinking" not in str(e).lower():
             raise
+        _budget_supported = False
         resp = _retry(lambda: call(False))
 
+    print(f"[gemini] {config.GEMINI_MODEL} ok, thinking_budget={'on' if _budget_supported else 'off'}", flush=True)
     u = resp.usage_metadata
     usage = {
         "input_tokens": u.prompt_token_count or 0,
