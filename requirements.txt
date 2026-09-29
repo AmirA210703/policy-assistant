@@ -1,0 +1,6 @@
+google-genai>=1.0
+numpy
+pandas
+python-dotenv
+streamlit>=1.40
+slack_bolt>=1.18

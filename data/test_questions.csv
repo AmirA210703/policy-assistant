@@ -1,0 +1,29 @@
+id,type,question,expected_policy
+1,direct,How many vacation days do I get per year?,Vacation Policy
+2,direct,Do expenses over $500 need approval?,Expense Approval Policy
+3,direct,How often do I have to change my password?,Password Policy
+4,direct,How long is the probation period for new hires?,Probation Period Policy
+5,direct,How much parental leave can I take?,Parental Leave Policy
+6,direct,How long is the product warranty?,Warranty Policy
+7,paraphrased,Can I work from home on Mondays and Fridays?,Remote Work Policy
+8,paraphrased,I want to spend a month working from my family's place in Spain. Is that allowed?,Work From Abroad Policy
+9,paraphrased,"My grandmother passed away, how much time off can I take?",Bereavement Leave Policy
+10,paraphrased,"I think my laptop was hacked, what should I do?",Security Incident Policy|Incident Response Policy
+11,paraphrased,What should I wear to the office?,Dress Code Policy
+12,paraphrased,How quickly must I hand in receipts after a business trip?,Travel Reimbursement Policy
+13,paraphrased,Can I start work at 7 and leave at 3?,Flexible Hours Policy
+14,paraphrased,Am I allowed to tell a journalist about our new product?,Media Contact Policy|Press Release Policy
+15,missing_detail,How many sick days do I accrue each month?,Sick Leave Policy
+16,missing_detail,What is the SLA for resolving support tickets?,Support Ticket Policy
+17,missing_detail,How many unused vacation days can I roll over?,Vacation Policy
+18,missing_detail,What is the maximum amount for tuition assistance?,Tuition Assistance Policy
+19,missing_detail,Is parental leave paid at full salary?,Parental Leave Policy
+20,missing_detail,How long do we have to keep documents?,Document Retention Policy
+21,out_of_scope,Can I bring my dog to the office?,NONE
+22,out_of_scope,What is the company's policy on cryptocurrency investments?,NONE
+23,out_of_scope,Is there free lunch in the canteen?,NONE
+24,out_of_scope,What percentage does the company contribute to my pension?,NONE
+25,out_of_scope,Can I smoke on company premises?,NONE
+26,ambiguous,Who pays for my certification course?,Training Reimbursement Policy|Tuition Assistance Policy
+27,ambiguous,Where do I report an IT problem?,Helpdesk Ticket Policy|Support Ticket Policy
+28,ambiguous,Do I need approval before posting a blog article?,Content Publishing Policy|Marketing Approval Policy|Social Media Policy
